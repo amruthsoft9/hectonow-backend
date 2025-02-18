@@ -1,41 +1,49 @@
 const express = require("express");
-const dotenv = require('dotenv');
-const mysql = require('mysql2');
-const cors = require('cors');
-const morgan = require('morgan');
-// const authRoutes = require('./routes/authRoutes');
-// const userRoutes = require('./routes/userRoutes');
+const cors = require("cors");
+const dotenv = require("dotenv");
+const mysql = require("mysql2");
+const morgan = require("morgan");
+
 dotenv.config();
 
-const app=express();
+const app = express();
 
-// Create a connection to the database
+// Database Connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
-  });
+});
 
-// Connect to the database
 db.connect((err) => {
-    if(err) {
-        console.error('Database connection failed: ' + err.stack);
+    if (err) {
+        console.error("Database connection failed: " + err.stack);
+        process.exit(1);
     } else {
-        console.log('Database connected  ');
+        console.log("Database connected");
     }
 });
-// //middleware
+
+// Middleware
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 
-// //Routes
-// app.use('/api/auth',authRoutes);
-// app.use('/api/user',userRoutes);
+// Import Routes
+const authRoutes = require("./routes/authRoutes");
 
-//start the server
-const PORT = process.env.PORT ||5000;
-app.listen(PORT,()=> {
-    console.log(`server is running on port ${PORT}`);
-})
+
+app.use("/api/auth", authRoutes);
+
+// Test Route
+app.get("/", (req, res) => {
+    res.send("API is running");
+});
+
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
