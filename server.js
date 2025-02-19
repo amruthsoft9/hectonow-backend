@@ -6,7 +6,7 @@ const cors = require("cors");
 
 const app = express();
 app.use(express.json());
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = ["http://localhost:5173","http://localhost:5174", "http://localhost:3000"];
 
 app.use(cors({
   origin: function (origin, callback) {
