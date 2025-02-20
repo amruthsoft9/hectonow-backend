@@ -1,25 +1,12 @@
-const mysql = require('mysql2');
-const dotenv = require('dotenv');
-dotenv.config();
+const sqlite3 = require("sqlite3").verbose();
 
-// Create a connection to the database
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
-});
-
-// Connect to the database
-db.connect((err) => {
+// ✅ Connect to SQLite Database
+const db = new sqlite3.Database("./users.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
   if (err) {
-    console.error('Database connection failed: ' + err.stack);
-    process.exit(1); 
-  } else {
-    console.log('Database connected as id ' + db.threadId);
+    console.error("❌ Database Connection Error:", err.message);
+    process.exit(1);
   }
+  console.log("✅ Connected to SQLite database");
 });
-
 
 module.exports = db;
-
