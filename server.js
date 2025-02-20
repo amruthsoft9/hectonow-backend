@@ -1,4 +1,5 @@
 const express = require("express");
+
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -158,3 +159,5 @@ app.get("/profile", (req, res) => {
 
 // ✅ Start Server
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+
+
