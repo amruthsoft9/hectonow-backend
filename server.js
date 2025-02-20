@@ -29,7 +29,7 @@ app.use(
   })
 );
 
-// Connect to SQLite Database
+// ✅ Connect to SQLite Database (No migration, keeps existing data)
 const db = new sqlite3.Database("./users.db", (err) => {
   if (err) {
     console.error("❌ Database Connection Error:", err.message);
@@ -38,54 +38,7 @@ const db = new sqlite3.Database("./users.db", (err) => {
   }
 });
 
-// 🛠 MIGRATION: Alter users table
-const migrateUsersTable = () => {
-  db.serialize(() => {
-    db.run("BEGIN TRANSACTION"); // Start transaction
-
-    db.run("ALTER TABLE users RENAME TO users_old", (err) => {
-      if (err) console.error("❌ Error renaming table:", err.message);
-    });
-
-    db.run(
-      `CREATE TABLE users (
-        id INTEGER PRIMARY KEY, 
-        firstName TEXT NOT NULL, 
-        lastName TEXT NOT NULL, 
-        username TEXT UNIQUE, 
-        phone TEXT NOT NULL, 
-        email TEXT UNIQUE NOT NULL, 
-        password TEXT NOT NULL
-      )`,
-      (err) => {
-        if (err) console.error("❌ Error creating new users table:", err.message);
-      }
-    );
-
-    db.run(
-      `INSERT INTO users (id, firstName, lastName, phone, email, password)
-       SELECT id, 
-              COALESCE(SUBSTR(fullName, 1, INSTR(fullName, ' ') - 1), 'Unknown') AS firstName, 
-              COALESCE(SUBSTR(fullName, INSTR(fullName, ' ') + 1), 'Unknown') AS lastName, 
-              phone, email, password 
-       FROM users_old`,
-      (err) => {
-        if (err) console.error("❌ Error copying data:", err.message);
-      }
-    );
-
-    db.run("DROP TABLE users_old", (err) => {
-      if (err) console.error("❌ Error dropping old table:", err.message);
-    });
-
-    db.run("COMMIT"); // Commit transaction
-    console.log("✅ Database migration completed successfully");
-  });
-};
-
-migrateUsersTable();
-
-// ✅ Registration Route (Updated Schema)
+// ✅ Registration Route
 app.post("/auth/register", async (req, res) => {
   console.log("📩 Received Data:", req.body);
 
