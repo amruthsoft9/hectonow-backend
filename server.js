@@ -8,6 +8,7 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
+
 // ✅ Check for JWT_SECRET
 if (!process.env.JWT_SECRET) {
   console.error("❌ Missing JWT_SECRET in environment variables");
@@ -136,11 +137,7 @@ app.post("/auth/seller/login", (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // 🛑 Check if seller is approved or not
-    if (seller.approved === 0) {
-      return res.status(403).json({ error: "Approval pending. Please wait for admin approval.", approvalStatus: "pending" });
-    }
-
+    // ✅ Allow login even if approval is pending
     const token = jwt.sign(
       { id: seller.id, email: seller.email, name: seller.name, shopName: seller.shopName },
       process.env.JWT_SECRET,
@@ -156,11 +153,12 @@ app.post("/auth/seller/login", (req, res) => {
         shopName: seller.shopName,
         email: seller.email,
         phone: seller.phone,
-        approved: seller.approved, // ✅ Send approval status
+        approved: seller.approved, // ✅ Send approval status to frontend
       },
     });
   });
 });
+
 
 
 app.put("/admin/approve-seller/:id", (req, res) => {
