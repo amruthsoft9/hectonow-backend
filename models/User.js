@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db"); // ✅ Ensure correct import
+const { sequelize } = require("../config/db"); 
 
 const User = sequelize.define("User", {
   id: {
@@ -32,6 +32,10 @@ const User = sequelize.define("User", {
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  cartData: {
+    type: DataTypes.JSON, // ✅ Fixed: Use JSON instead of Object
+    defaultValue: {} // ✅ Fix: Default should be set using defaultValue
   }
 }, {
   tableName: "users",
