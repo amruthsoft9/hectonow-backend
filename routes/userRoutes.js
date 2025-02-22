@@ -1,8 +1,12 @@
+   
 const express = require("express");
-const router = express.Router();
-const { getUser, updateUser } = require("../controllers/userController"); // ✅ Correct path
+const { registerUser,loginUser, adminLogin } = require("../controllers/userController");
 
-router.get("/profile", getUser);
-router.put("/profile", updateUser);
+const router = express.Router();
+
+// User Registration Route (POST)
+router.post("/register", registerUser);
+router.post("/login",loginUser)
+router.post("/admin-login",adminLogin)
 
 module.exports = router;
