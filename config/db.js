@@ -1,33 +1,21 @@
-const sqlite3 = require("sqlite3").verbose();
+require("dotenv").config();
+const mysql = require("mysql2");
 
-// Connect to SQLite Database
-const db = new sqlite3.Database("./users.db", (err) => {
-  if (err) {
-    console.error("❌ Database Connection Error:", err.message);
-  } else {
-    console.log("✅ Connected to SQLite database");
-  }
+// ✅ Create MySQL connection
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password:process.env.DB_password,
+    database:process.env.DB_DATABASE
 });
 
-// 🛠 Ensure `users` table exists
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    firstName TEXT NOT NULL, 
-    lastName TEXT NOT NULL, 
-    username TEXT UNIQUE NOT NULL, 
-    phone TEXT NOT NULL, 
-    email TEXT UNIQUE NOT NULL, 
-    password TEXT NOT NULL,
-    cartData TEXT DEFAULT '{}'
-  )
-`, (err) => {
-  if (err) {
-    console.error("❌ Error creating users table:", err.message);
-  } else {
-    console.log("✅ Users table is ready");
-  }
+// ✅ Connect to MySQL
+db.connect((err) => {
+    if (err) {
+        console.error("❌ Database connection failed:", err.message);
+    } else {
+        console.log("✅ Connected to MySQL Database");
+    }
 });
 
-// Export the database instance
 module.exports = db;
