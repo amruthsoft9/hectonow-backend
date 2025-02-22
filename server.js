@@ -5,10 +5,6 @@ require("dotenv").config();
 require ("./config/db")
 
 
-
-
-
-
 // App configurations
 const app = express();
 const PORT = process.env.PORT || 5000;
