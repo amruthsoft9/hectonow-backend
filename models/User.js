@@ -1,41 +1,30 @@
-const { DataTypes } = require("sequelize");
-const { sequelize } = require("../config/db"); // ✅ Ensure correct import
+const connection = require("../config/db");
 
-const User = sequelize.define("User", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+const User = {
+  create: (userData, callback) => {
+    const sql = `INSERT INTO users (firstName, lastName, username, phone, email, password) VALUES (?, ?, ?, ?, ?, ?)`;
+    const values = [
+      userData.firstName,
+      userData.lastName,
+      userData.username,
+      userData.phone,
+      userData.email,
+      userData.password, // Make sure to hash before storing!
+    ];
+
+    connection.query(sql, values, (err, result) => {
+      if (err) return callback(err, null);
+      return callback(null, result);
+    });
   },
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false
+
+  findByEmail: (email, callback) => {
+    const sql = `SELECT * FROM users WHERE email = ?`;
+    connection.query(sql, [email], (err, result) => {
+      if (err) return callback(err, null);
+      return callback(null, result[0]); // Return the first user found
+    });
   },
-  lastName: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  },
-  phone: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false
-  }
-}, {
-  tableName: "users",
-  timestamps: true
-});
+};
 
 module.exports = User;

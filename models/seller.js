@@ -1,15 +1,31 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db");
+const connection = require("../config/db");
 
-const Seller = sequelize.define("Seller", {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  fullName: { type: DataTypes.STRING, allowNull: false },
-  email: { type: DataTypes.STRING, allowNull: false, unique: true },
-  password: { type: DataTypes.STRING, allowNull: false },
-  shopName: { type: DataTypes.STRING, allowNull: false },
-  address: { type: DataTypes.TEXT, allowNull: true },
-  phone: { type: DataTypes.STRING, allowNull: true },
-  isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
-});
+const Seller = {
+  create: (sellerData, callback) => {
+    const sql = `INSERT INTO sellers (firstName, lastName, username, phone, email, password, shopName) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const values = [
+      sellerData.firstName,
+      sellerData.lastName,
+      sellerData.username,
+      sellerData.phone,
+      sellerData.email,
+      sellerData.password, // Hash before storing!
+      sellerData.shopName,
+    ];
+
+    connection.query(sql, values, (err, result) => {
+      if (err) return callback(err, null);
+      return callback(null, result);
+    });
+  },
+
+  findByEmail: (email, callback) => {
+    const sql = `SELECT * FROM sellers WHERE email = ?`;
+    connection.query(sql, [email], (err, result) => {
+      if (err) return callback(err, null);
+      return callback(null, result[0]);
+    });
+  },
+};
 
 module.exports = Seller;
