@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../config/db");
+const db = require("../config/db"); // ✅ Import your MySQL connection
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -19,10 +19,10 @@ router.post("/register", async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    db.run(
+    db.query(
       `INSERT INTO users (firstName, lastName, username, phone, email, password) VALUES (?, ?, ?, ?, ?, ?)`,
       [firstName, lastName, username, phone, email, hashedPassword],
-      function (err) {
+      (err, result) => {
         if (err) {
           console.error("❌ Database Error:", err.message);
           return res.status(500).json({ error: "Email or username already exists" });
@@ -36,27 +36,38 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ✅ Login Route
+// ✅ User Login Route
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
+  // Check if the user exists in the database
+  db.query("SELECT * FROM users WHERE email = ?", [email], async (err, results) => {
     if (err) {
       console.error("❌ Database Error:", err.message);
       return res.status(500).json({ error: "Database error" });
     }
 
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
+    if (results.length === 0) {
+      return res.status(400).json({ error: "User not found!" });
     }
 
+    const user = results[0];
+
+    // Compare hashed password
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, username: user.username },
+      {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+      },
       process.env.JWT_SECRET || "defaultsecretkey",
       { expiresIn: "2h" }
     );
@@ -65,9 +76,5 @@ router.post("/login", (req, res) => {
   });
 });
 
-// ✅ Protected Profile Route
-router.get("/profile", authMiddleware, (req, res) => {
-  res.json({ message: "Access granted", user: req.user });
-});
 
 module.exports = router;

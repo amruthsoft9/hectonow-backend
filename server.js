@@ -7,6 +7,8 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
+const mysql = require("./config/db"); 
+
 
 
 require("./config/db");
@@ -72,31 +74,22 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-// ✅ Connect to SQLite Database
-const db = new sqlite3.Database("./users.db", (err) => {
-  if (err) {
-    console.error("❌ Database Connection Error:", err.message);
-  } else {
-    console.log("✅ Connected to SQLite database");
-  }
-});
-
 // ✅ Create Sellers Table
-db.run(
+mysql.query(
   `CREATE TABLE IF NOT EXISTS sellers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    shopName TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    phone TEXT NOT NULL,
-    password TEXT NOT NULL,
-    pan TEXT NOT NULL,
-    gst TEXT NOT NULL,
-    fssai TEXT NOT NULL,
-    license TEXT NOT NULL,
-    ownerPhoto TEXT NOT NULL,
-    approved INTEGER DEFAULT 0
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    shopName VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    pan VARCHAR(50) NOT NULL,
+    gst VARCHAR(50) NOT NULL,
+    fssai VARCHAR(50) NOT NULL,
+    license VARCHAR(50) NOT NULL,
+    ownerPhoto VARCHAR(255) NOT NULL,
+    approved TINYINT(1) DEFAULT 0
   )`,
   (err) => {
     if (err) console.error("❌ Error creating sellers table:", err.message);
@@ -104,12 +97,28 @@ db.run(
   }
 );
 
+mysql.query(
+  `CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    firstName VARCHAR(255) NOT NULL,
+    lastName VARCHAR(255) NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+  )`,
+  (err) => {
+    if (err) {
+      console.error("❌ Error creating users table:", err.message);
+    } else {
+      console.log("✅ Users table ready");
+    }
+  }
+);
+
 // ✅ Seller Registration Route
 app.post("/auth/seller/register", upload.single("ownerPhoto"), async (req, res) => {
   try {
-    console.log("📩 Received Seller Registration Data:", req.body);
-    console.log("📷 Uploaded File:", req.file);
-
     const { username, name, shopName, email, phone, password, pan, gst, fssai, license } = req.body;
     const ownerPhoto = req.file ? req.file.filename : null;
 
@@ -117,20 +126,20 @@ app.post("/auth/seller/register", upload.single("ownerPhoto"), async (req, res) 
       return res.status(400).json({ error: "All fields are required!" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12); // Increased salt rounds for better security
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    db.run(
+    mysql.query(
       "INSERT INTO sellers (username, name, shopName, email, phone, password, pan, gst, fssai, license, ownerPhoto, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [username, name, shopName, email, phone, hashedPassword, pan, gst, fssai, license, ownerPhoto, 0],
-      function (err) {
+      (err, result) => {
         if (err) {
-          if (err.code === "SQLITE_CONSTRAINT") {
+          if (err.code === "ER_DUP_ENTRY") {
             return res.status(400).json({ error: "Username or email already exists!" });
           }
           console.error("❌ Database Error:", err.message);
           return res.status(500).json({ error: "Database error" });
         }
-        res.status(201).json({ message: "Seller registered successfully, pending approval", sellerId: this.lastID });
+        res.status(201).json({ message: "Seller registered successfully, pending approval", sellerId: result.insertId });
       }
     );
   } catch (error) {
@@ -139,18 +148,21 @@ app.post("/auth/seller/register", upload.single("ownerPhoto"), async (req, res) 
   }
 });
 
+
 // ✅ Seller Login Route
 app.post("/auth/seller/login", (req, res) => {
   const { email, password } = req.body;
 
-  db.get("SELECT * FROM sellers WHERE email = ?", [email], async (err, seller) => {
+  mysql.query("SELECT * FROM sellers WHERE email = ?", [email], async (err, results) => {
     if (err) {
       return res.status(500).json({ error: "Database error" });
     }
 
-    if (!seller) {
+    if (results.length === 0) {
       return res.status(400).json({ error: "Seller not found!" });
     }
+
+    const seller = results[0];
 
     const isValid = await bcrypt.compare(password, seller.password);
     if (!isValid) {
@@ -178,16 +190,18 @@ app.post("/auth/seller/login", (req, res) => {
   });
 });
 
+
 // ✅ Admin Approve Seller Route
+// ✅ Fixed: Admin Approve Seller Route
 app.put("/admin/approve-seller/:id", (req, res) => {
   const { id } = req.params;
 
-  db.run("UPDATE sellers SET approved = 1 WHERE id = ?", [id], function (err) {
+  mysql.query("UPDATE sellers SET approved = 1 WHERE id = ?", [id], (err, result) => {
     if (err) {
       return res.status(500).json({ error: "Database error" });
     }
 
-    if (this.changes === 0) {
+    if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Seller not found" });
     }
 
