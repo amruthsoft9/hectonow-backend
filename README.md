@@ -68,8 +68,8 @@ The backend will be running at `http://localhost:5000`.
 ## 🔥 API Endpoints
 | Method | Endpoint           | Description              |
 |--------|-------------------|--------------------------|
-| POST   | `/auth/signup`    | Register a new user      |
-| POST   | `/auth/login`     | Login and get JWT token  |
+| POST   | `/api/signup`    | Register a new user      |
+| POST   | `/api/login`     | Login and get JWT token  |
 | GET    | `/products`       | Get all products         |
 | GET    | `/orders`         | Get user orders          |
 | POST   | `/orders/create`  | Place an order           |
