@@ -4,7 +4,7 @@ const mysql = require("mysql2")
 const userRouter = require("./routes/userRoutes");
 require("dotenv").config();
 
-const mysql = require("./config/db");
+require("./config/db");
 
 
 
@@ -36,8 +36,8 @@ const userRoutes = require("./routes/userRoutes");
 const sellerRoutes = require("./routes/sellerRoutes");
 
 
-app.use("/auth/user", userRoutes);
-app.use("/auth/seller", sellerRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/seller", sellerRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
