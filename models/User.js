@@ -1,5 +1,7 @@
 
+
 const connection = require("../config/db");
+
 
 
 const User = {
@@ -28,5 +30,6 @@ const User = {
     });
   },
 };
+
 
 module.exports = User;
