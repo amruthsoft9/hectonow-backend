@@ -22,7 +22,7 @@ app.use(express.json());
 
 // cors configurations
 
-const allowedOrigins = ["http://localhost:5173" , "http://localhost:5174" , "http://localhost:3000","https://82.29.152.237:5173","http://82.29.152.237:5173"];
+const allowedOrigins = ["http://localhost:5173" , "http://localhost:5174" , "http://localhost:3000","http://82.29.152.237:5173/"];
 
 
 app.use(cors({
