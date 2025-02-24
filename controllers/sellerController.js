@@ -29,6 +29,8 @@ const upload = multer({
   }
 });
 
+// seller registration
+
 const registerSeller = async (req, res) => {
   try {
     const { username, name, shopName, email, phone, password, pan, gst, fssai, license } = req.body;
