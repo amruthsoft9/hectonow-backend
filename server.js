@@ -1,7 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const path = require('path')
 const mysql = require("mysql2")
-const userRouter = require("./routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");
+const sellerRoutes = require("./routes/sellerRoutes");
+const adminRoutes = require("./routes/adminRoutes")
+
+
+
 require("dotenv").config();
 
 require("./config/db");
@@ -11,9 +17,10 @@ require("./config/db");
 // App configurations
 const app = express();
 
-
+// App middleware
 app.use(express.json()); 
 
+// cors configurations
 
 const allowedOrigins = ["http://localhost:5173" , "http://localhost:5174" , "http://localhost:3000","http://82.29.152.237:5173"];
 
@@ -31,13 +38,13 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-
-const userRoutes = require("./routes/userRoutes");
-const sellerRoutes = require("./routes/sellerRoutes");
-
+// Routes
 
 app.use("/api/user", userRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/admin", adminRoutes);
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
